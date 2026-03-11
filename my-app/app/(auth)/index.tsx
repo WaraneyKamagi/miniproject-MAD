@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Alert } from 'react-native';
+import {
+    View, Text, TextInput, TouchableOpacity, ImageBackground,
+    StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView,
+    KeyboardAvoidingView, Modal, Linking, Alert
+} from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function LoginPage() {
@@ -8,8 +12,13 @@ export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(true);
+    const [helpVisible, setHelpVisible] = useState(false);
 
     const handleLogin = () => {
+        if (!username.trim() || !password.trim()) {
+            Alert.alert('Login Failed', 'Please enter your username/ID and password.');
+            return;
+        }
         if (role === 'Student') {
             router.replace('/(auth)/student-dashboard');
         } else {
@@ -26,7 +35,8 @@ export default function LoginPage() {
                 <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                     <View style={styles.container}>
                         <View style={styles.card}>
-                            {/* TopAppBar Component */}
+
+                            {/* Header */}
                             <View style={styles.header}>
                                 <View style={styles.iconContainer}>
                                     <Text style={styles.iconText}>🍽️</Text>
@@ -35,15 +45,12 @@ export default function LoginPage() {
                                 <View style={styles.headerSpacer} />
                             </View>
 
-                            {/* Illustration Area */}
-                            <View style={styles.imageContainer}>
-                                <ImageBackground
-                                    source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCYtzCOvVJNS2I7eMJSLSUtnsJ5XScC2FYJg4qmBpM53mIUxDXGhrNfCVvUe58GHWt3SFg-LEyHKrzG2dXPeSGEPg-EnrGvLW4ZfeTdsOOGhpYlDUh7HSRozYcNEHgzpDGHaUxQ7vn0OBm6hle6XKN4kg366W7dnSp3tpedeLFKT71K0XDIA-FvE0qelttP1UIIRcCUaKsQwF0pBDMBrJY3nj-9DWruS46JZe7g00nMChTnStuo9jLWNfiBY5UnDu1gl8syBjX9M99P' }}
-                                    style={styles.backgroundImage}
-                                    imageStyle={{ borderRadius: 8 }}
-                                >
-                                </ImageBackground>
-                            </View>
+                            {/* Illustration */}
+                            <ImageBackground
+                                source={require('../../assets/images/daining.png')}
+                                style={styles.backgroundImage}
+                                imageStyle={{ borderRadius: 8 }}
+                            />
 
                             <View style={styles.contentPadding}>
                                 <Text style={styles.welcomeText}>Welcome Back</Text>
@@ -83,6 +90,7 @@ export default function LoginPage() {
                                                 placeholderTextColor="#9ca3af"
                                                 value={username}
                                                 onChangeText={setUsername}
+                                                autoCapitalize="none"
                                             />
                                         </View>
                                     </View>
@@ -107,10 +115,14 @@ export default function LoginPage() {
                                             style={styles.checkboxContainer}
                                             onPress={() => setRememberMe(!rememberMe)}
                                         >
-                                            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]} />
+                                            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                                                {rememberMe && (
+                                                    <Text style={styles.checkmark}>✓</Text>
+                                                )}
+                                            </View>
                                             <Text style={styles.rememberText}>Remember me</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity>
+                                        <TouchableOpacity onPress={() => Alert.alert('Forgot Password', 'Please contact Dining Services to reset your password.\n\n📧 dining@dormsystem.edu\n📞 (021) 555-0100')}>
                                             <Text style={styles.forgotText}>Forgot password?</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -123,15 +135,105 @@ export default function LoginPage() {
                                 {/* Help Link */}
                                 <View style={styles.helpContainer}>
                                     <Text style={styles.helpText}>
-                                        Need help? <Text style={styles.contactText}>Contact Dining Services</Text>
+                                        Need help?{' '}
+                                        <Text style={styles.contactText} onPress={() => setHelpVisible(true)}>
+                                            Contact Dining Services
+                                        </Text>
                                     </Text>
                                 </View>
                             </View>
-
                         </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* Help Modal */}
+            <Modal
+                visible={helpVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setHelpVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalCard}>
+
+                        {/* Modal Header */}
+                        <View style={styles.modalHeader}>
+                            <View style={styles.modalIconContainer}>
+                                <Text style={styles.modalIcon}>🍽️</Text>
+                            </View>
+                            <Text style={styles.modalTitle}>Dining Services</Text>
+                            <TouchableOpacity onPress={() => setHelpVisible(false)} style={styles.modalClose}>
+                                <Text style={styles.modalCloseText}>✕</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.modalDivider} />
+
+                        <Text style={styles.modalSubtitle}>How can we help you?</Text>
+
+                        {/* Contact Options */}
+                        <TouchableOpacity
+                            style={styles.contactOption}
+                            onPress={() => Linking.openURL('mailto:dining@dormsystem.edu')}
+                        >
+                            <View style={styles.contactIconBox}>
+                                <Text style={styles.contactOptionIcon}>📧</Text>
+                            </View>
+                            <View style={styles.contactOptionContent}>
+                                <Text style={styles.contactOptionTitle}>Email Us</Text>
+                                <Text style={styles.contactOptionValue}>dining@dormsystem.edu</Text>
+                            </View>
+                            <Text style={styles.contactArrow}>›</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.contactOption}
+                            onPress={() => Linking.openURL('tel:+62215550100')}
+                        >
+                            <View style={styles.contactIconBox}>
+                                <Text style={styles.contactOptionIcon}>📞</Text>
+                            </View>
+                            <View style={styles.contactOptionContent}>
+                                <Text style={styles.contactOptionTitle}>Call Us</Text>
+                                <Text style={styles.contactOptionValue}>(021) 555-0100</Text>
+                            </View>
+                            <Text style={styles.contactArrow}>›</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.contactOption}
+                            onPress={() => Linking.openURL('https://wa.me/628155501001')}
+                        >
+                            <View style={styles.contactIconBox}>
+                                <Text style={styles.contactOptionIcon}>💬</Text>
+                            </View>
+                            <View style={styles.contactOptionContent}>
+                                <Text style={styles.contactOptionTitle}>WhatsApp</Text>
+                                <Text style={styles.contactOptionValue}>+62 815-5501-001</Text>
+                            </View>
+                            <Text style={styles.contactArrow}>›</Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.modalDivider} />
+
+                        <View style={styles.modalHours}>
+                            <Text style={styles.modalHoursIcon}>🕐</Text>
+                            <View>
+                                <Text style={styles.modalHoursTitle}>Office Hours</Text>
+                                <Text style={styles.modalHoursText}>Monday – Friday, 08:00 – 17:00</Text>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.modalCloseButton}
+                            onPress={() => setHelpVisible(false)}
+                        >
+                            <Text style={styles.modalCloseButtonText}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -187,9 +289,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    iconText: {
-        fontSize: 20,
-    },
+    iconText: { fontSize: 20 },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
@@ -197,13 +297,7 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
     },
-    headerSpacer: {
-        width: 40,
-    },
-    imageContainer: {
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-    },
+    headerSpacer: { width: 40 },
     backgroundImage: {
         width: '100%',
         height: 180,
@@ -263,15 +357,9 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#64748b',
     },
-    roleTextActive: {
-        color: PRIMARY_COLOR,
-    },
-    formContainer: {
-        gap: 16,
-    },
-    inputGroup: {
-        marginBottom: 16,
-    },
+    roleTextActive: { color: PRIMARY_COLOR },
+    formContainer: { gap: 16 },
+    inputGroup: { marginBottom: 16 },
     inputLabel: {
         fontSize: 14,
         fontWeight: '500',
@@ -310,16 +398,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     checkbox: {
-        width: 16,
-        height: 16,
+        width: 18,
+        height: 18,
         borderRadius: 4,
-        borderWidth: 1,
-        borderColor: 'rgba(236, 127, 19, 0.3)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(236, 127, 19, 0.4)',
         marginRight: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     checkboxChecked: {
         backgroundColor: PRIMARY_COLOR,
         borderColor: PRIMARY_COLOR,
+    },
+    checkmark: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 'bold',
+        lineHeight: 14,
     },
     rememberText: {
         fontSize: 14,
@@ -360,5 +456,139 @@ const styles = StyleSheet.create({
         color: PRIMARY_COLOR,
         fontWeight: '500',
     },
-});
 
+    // ── Modal ──────────────────────────────────────────
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    modalCard: {
+        width: '100%',
+        maxWidth: 380,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.15,
+        shadowRadius: 30,
+        elevation: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(236, 127, 19, 0.1)',
+        overflow: 'hidden',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+    },
+    modalIconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(236, 127, 19, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+    },
+    modalIcon: { fontSize: 18 },
+    modalTitle: {
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: '#0f172a',
+        flex: 1,
+    },
+    modalClose: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalCloseText: {
+        fontSize: 13,
+        color: '#64748b',
+        fontWeight: '600',
+    },
+    modalDivider: {
+        height: 1,
+        backgroundColor: 'rgba(236, 127, 19, 0.08)',
+        marginHorizontal: 16,
+    },
+    modalSubtitle: {
+        fontSize: 13,
+        color: '#64748b',
+        paddingHorizontal: 16,
+        paddingTop: 14,
+        paddingBottom: 10,
+        fontWeight: '500',
+    },
+    contactOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    contactIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: 'rgba(236, 127, 19, 0.08)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    contactOptionIcon: { fontSize: 18 },
+    contactOptionContent: { flex: 1 },
+    contactOptionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#0f172a',
+    },
+    contactOptionValue: {
+        fontSize: 12,
+        color: PRIMARY_COLOR,
+        marginTop: 1,
+    },
+    contactArrow: {
+        fontSize: 20,
+        color: '#cbd5e1',
+        fontWeight: '300',
+    },
+    modalHours: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        gap: 10,
+    },
+    modalHoursIcon: { fontSize: 18 },
+    modalHoursTitle: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#334155',
+    },
+    modalHoursText: {
+        fontSize: 12,
+        color: '#64748b',
+        marginTop: 1,
+    },
+    modalCloseButton: {
+        marginHorizontal: 16,
+        marginBottom: 16,
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: 'rgba(236, 127, 19, 0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(236, 127, 19, 0.15)',
+        alignItems: 'center',
+    },
+    modalCloseButtonText: {
+        color: PRIMARY_COLOR,
+        fontWeight: '600',
+        fontSize: 14,
+    },
+});
